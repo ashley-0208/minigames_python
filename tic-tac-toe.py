@@ -11,9 +11,7 @@ def print_board():
         end = ''
         if j % 3 == 0:
             end = '\n\n'
-        if i == 'o':
-            print(f'[{i}]', end=end)
-        elif i == 'x':
+        if i == 'o' or i == 'x':
             print(f'[{i}]', end=end)
         else:
             print(f'[{i}]', end=end)
@@ -27,70 +25,81 @@ def make_move(b, pl, mv, undo=False):
         if undo:
             b[mv - 1] = mv
         return True, win
-    return True, True  #moved, won
+    return False, False   # if move is invalid, return False for both
 
 
 def can_move(b, mv):
     if mv in range(1, 10) and isinstance(b[mv - 1], int):
         return True
-    else:
-        return False
+    return False
 
 
 def is_winner(b, pl):
-    for t in winner:  #searches 8 lil tuples
-        win = True
-        for i in t:  #searches 3 nums inside lil tuples
-            if b[i] != pl:
-                win = False
-                break
-        if win:
-            break
-    return win
+    for t in winner:
+        if all(b[i] == pl for i in t):
+            return True
+    return False
 
 
 def computer_mv():
-    mv = -1  #do not move
-    # can you win?
-    for i in range(1, 10):
-        if make_move(board, computer, i, True)[1]:
-            mv = i
-            break
-    # would pl win?
-    for j in range(1, 10):
-        if make_move(board, player, j, True)[1]:
-            mv = j
-            break
-    # if neither, prioritize your mv
-    if mv == -1:
-        for t in moves:
-            for i in t:
-                if can_move(board, i):
-                    mv = i
-                    break
-    return make_move(board, computer, mv)
+    # اول: بررسی کنید آیا کامپیوتر می‌تواند برنده شود
+    for p in range(1, 10):
+        if can_move(board, p):
+            _, win = make_move(board, computer, p, undo=True)  # شبیه‌سازی حرکت
+            if win:  # اگر این حرکت باعث برنده شدن کامپیوتر شود
+                return make_move(board, computer, p)  # حرکت واقعی را انجام دهید
+#  پارامتر - در واقع به مقدار can move در تابع make move برمیگرده واینجا فقط win رو بررسی میکنه.
+    # دوم: بررسی کنید آیا بازیکن می‌تواند برنده شود و جلوی آن را بگیرید
+    for p in range(1, 10):
+        if can_move(board, p):
+            _, win = make_move(board, player, p, undo=True)  # شبیه‌سازی حرکت بازیکن
+            if win:  # اگر این حرکت باعث برنده شدن بازیکن شود
+                return make_move(board, computer, p)  # جلوی آن را بگیرید
+
+    # سوم: اگر هیچ کدام از موارد بالا نبود، یک حرکت تصادفی انجام دهید
+    for p in range(1, 10):
+        if can_move(board, p):
+            return make_move(board, computer, p)  # حرکت تصادفی
+
+    # اگر هیچ حرکتی ممکن نبود، False برگردانید
+    return False, False
 
 
 def empty_space():
-    return board.count('o') + board.count('x') != 9
+    return any(isinstance(cell, int) for cell in board)
 
 
 computer, player = 'o', 'x'
-print('computer: o\nplayer: x')
+print('computer: *\nplayer: x')
+
 while empty_space():
+    # نوبت بازیکن
     print_board()
     move = int(input('make your move: '))
-    moved, won = make_move(board, player, move)
-    if not moved:
-        print('invalid num! try again')
+    move_valid, player_won = make_move(board, player, move)
+
+    if not move_valid:
+        print('invalid move!')
         continue
-    if won:
-        print('you won!')
+
+    if player_won:
+        print_board()
+        print('You win!')
         break
-    # elif computer_mv()[1]:
-    #     print('you lose!!')
-    #     break
+
+    # نوبت کامپیوتر
+    computer_move_valid, computer_won = computer_mv()
+
+    if computer_won:
+        print_board()
+        print('You lose!')
+        break
+
+    # بررسی مساوی شدن بازی
+    if not empty_space():
+        print_board()
+        print("It's a tie!")
+        break
+
 
 print_board()
-
-# check make move func and change (moved-won) part in last loop!
