@@ -123,14 +123,13 @@ class Hangman:
             ((165, 60), (165, 365), 10),
             ((160, 360), (100, 360), 10),
             ((100, 365), (100, 330), 10),
-            ((100, 330), (100, 310), 1),
         ]
         for *points, width in lines:
             self.canvas.draw_line(*points, color='black', width=width)
 
     def draw_hanged_man(self):
-        head = (100, 270)
-        torso = [((100, 270), (100, 170))]  # two points to draw one vertical line
+        head = (100, 290)
+        torso = [((100, 250), (100, 190))]  # two points to draw one vertical line
 
         left_arm = [
             ((100, 250), (80, 250)),
